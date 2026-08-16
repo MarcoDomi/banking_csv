@@ -5,6 +5,15 @@ from google.oauth2.service_account import Credentials
 SERVICE_ACCOUNT_FILE = "intense-acumen-505422-k6-16d08f1e3b27.json"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
+def update_AMOUNT(row):
+    '''change the value under AMOUNT column to match banking csv format'''
+    if row["Additions"] != '':
+        row["AMOUNT"] = row["Additions"]
+    else:
+        row["AMOUNT"] *= -1
+
+    
+
 
 def format_data(sheet):
     '''format data so it is inline with banking csv sheet'''
@@ -13,11 +22,7 @@ def format_data(sheet):
     for row in data:
         if row["DATE"] != "":
             row["DATE"] += "/2024"
-
-            if (row["Additions"] != ''):
-                row["AMOUNT"] = row["Additions"]
-            else:
-                row["AMOUNT"] *= -1
+            update_AMOUNT(row)
             
         else:
             pass
