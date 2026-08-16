@@ -14,12 +14,15 @@ def format_data(sheet):
         if row["DATE"] != "":
             row["DATE"] += "/2024"
 
-            if (row["AMOUNT"]):
-                pass
-
+            if (row["Additions"] != ''):
+                row["AMOUNT"] = row["Additions"]
+            else:
+                row["AMOUNT"] *= -1
+            
         else:
             pass
             # move description to previous row
+        
 
 def main():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
