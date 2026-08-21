@@ -5,11 +5,24 @@ from google.oauth2.service_account import Credentials
 SERVICE_ACCOUNT_FILE = "intense-acumen-505422-k6-16d08f1e3b27.json"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
-def append_decimal(amount:str):
-    'appends decimal and zeroes to amount if needed'
-    if '.' in amount:
-        print('present')
+def check_amt(amt):
+    amt_list = amt.split('.')
+    if len(amt_list) == 1:
+        print(amt)
+    elif len(amt_list[1]) < 2:
+        print(amt)
+   
 
+def append_decimal(amount:str) -> str:
+    'appends decimal and zeroes to amount if needed'
+
+    amount_list = amount.split('.')
+    if len(amount_list) == 1: #there is no decimal
+        amount_list.append("00")
+    elif len(amount_list[1]) == 1: #there is a decimal but only 1 digit after decimal
+        amount_list[1] += '0'
+
+    return ".".join(amount_list)
 
 
 def format_AMOUNT(row:dict):
@@ -19,7 +32,9 @@ def format_AMOUNT(row:dict):
         row["AMOUNT"] = row["Additions"] #if value present under Additions copy to a cell under AMOUNT
     else:
         row["AMOUNT"] *= -1
-    #TODO add decimal and zeroes if needed
+    
+    row["AMOUNT"] = append_decimal(str(row["AMOUNT"]))
+    check_amt(row["AMOUNT"])
 
 
 def format_data(sheet):
@@ -30,11 +45,11 @@ def format_data(sheet):
         if row["DATE"] != "":
             row["DATE"] += "/2024"
             format_AMOUNT(row)
-            print(row)
+            #print(row)
         else:
             pass
             # move description to previous row
-        
+
 
 def main():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
