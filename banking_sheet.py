@@ -11,7 +11,7 @@ def check_amt(amt):
         print(amt)
     elif len(amt_list[1]) < 2:
         print(amt)
-   
+
 
 def append_decimal(amount:str) -> str:
     'appends decimal and zeroes to amount if needed'
@@ -40,7 +40,7 @@ def format_AMOUNT(row:dict):
 def format_data(sheet) -> list[dict]:
     '''format data so it is inline with banking csv sheet'''
     data = sheet.get_all_records()
-    
+
     for i in range(len(data)):
         row = data[i]
 
@@ -52,9 +52,12 @@ def format_data(sheet) -> list[dict]:
             desc2 = data[i+1]["DESCRIPTION"]
             row["DESCRIPTION"] = " ".join([desc1, desc2])
 
+            row["STATUS"] = "Posted"
+            row["CHECK #"] = ""
+            del row["Additions"]
+
 
     return data
-    
 
 
 def main():
