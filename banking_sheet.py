@@ -37,12 +37,18 @@ def format_AMOUNT(row:dict):
     check_amt(row["AMOUNT"])
 
 
-def fix_description(curr_row, next_row):
+def fix_description(curr_row:dict, next_row:dict):
     '''fix transaction description by concatenating descriptions parts found on separate rows'''
 
     desc1 = curr_row["DESCRIPTION"]
     desc2 = next_row["DESCRIPTION"]
     curr_row["DESCRIPTION"] = " ".join([desc1, desc2])
+
+def modify_columns(row:dict):
+    '''add and remove columns from row'''
+    row["STATUS"] = "Posted"
+    row["CHECK #"] = ""
+    del row["Additions"]
 
 
 def format_data(sheet) -> list[dict]:
@@ -55,14 +61,9 @@ def format_data(sheet) -> list[dict]:
         if row["DATE"] != "":
             row["DATE"] += "/2024"
             format_AMOUNT(row)
-
             fix_description(row, data[i+1])
-
-            row["STATUS"] = "Posted"
-            row["CHECK #"] = ""
-            del row["Additions"]
-
-
+            modify_columns(row)
+        
     return data
 
 
