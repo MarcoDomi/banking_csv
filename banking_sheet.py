@@ -37,7 +37,7 @@ def format_AMOUNT(row:dict):
     check_amt(row["AMOUNT"])
 
 
-def format_data(sheet) -> list:
+def format_data(sheet) -> list[dict]:
     '''format data so it is inline with banking csv sheet'''
     data = sheet.get_all_records()
     
@@ -47,14 +47,11 @@ def format_data(sheet) -> list:
         if row["DATE"] != "":
             row["DATE"] += "/2024"
             format_AMOUNT(row)
-            
-        else:
-            prev_row = data[i-1]
 
-            desc1 = prev_row["DESCRIPTION"] 
-            desc2 = row["DESCRIPTION"]
+            desc1 = row["DESCRIPTION"]
+            desc2 = data[i+1]["DESCRIPTION"]
+            row["DESCRIPTION"] = " ".join([desc1, desc2])
 
-            data[i-1]["DESCRIPTION"] = " ".join([desc1, desc2])
 
     return data
     
