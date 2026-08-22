@@ -37,6 +37,14 @@ def format_AMOUNT(row:dict):
     check_amt(row["AMOUNT"])
 
 
+def fix_description(curr_row, next_row):
+    '''fix transaction description by concatenating descriptions parts found on separate rows'''
+
+    desc1 = curr_row["DESCRIPTION"]
+    desc2 = next_row["DESCRIPTION"]
+    curr_row["DESCRIPTION"] = " ".join([desc1, desc2])
+
+
 def format_data(sheet) -> list[dict]:
     '''format data so it is inline with banking csv sheet'''
     data = sheet.get_all_records()
@@ -48,9 +56,7 @@ def format_data(sheet) -> list[dict]:
             row["DATE"] += "/2024"
             format_AMOUNT(row)
 
-            desc1 = row["DESCRIPTION"]
-            desc2 = data[i+1]["DESCRIPTION"]
-            row["DESCRIPTION"] = " ".join([desc1, desc2])
+            fix_description(row, data[i+1])
 
             row["STATUS"] = "Posted"
             row["CHECK #"] = ""
@@ -68,7 +74,8 @@ def main():
     sheet = client.open_by_key(SHEET_ID).sheet1
 
     formatted_data = format_data(sheet)
-    print(formatted_data)
+    print(formatted_data[0])
+    print(formatted_data[1])
 
 
 if __name__ == "__main__":
