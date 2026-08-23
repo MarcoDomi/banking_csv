@@ -1,5 +1,6 @@
 # edit banking information in google sheets
 import gspread
+import csv
 from google.oauth2.service_account import Credentials
 
 SERVICE_ACCOUNT_FILE = "intense-acumen-505422-k6-16d08f1e3b27.json"
@@ -46,8 +47,8 @@ def fix_description(curr_row:dict, next_row:dict):
 
 def modify_columns(row:dict):
     '''add and remove columns from row'''
-    row["STATUS"] = "Posted"
     row["CHECK #"] = ""
+    row["STATUS"] = "Posted"
     del row["Additions"]
 
 
@@ -66,6 +67,13 @@ def format_data(sheet) -> list[dict]:
         
     return data
 
+def create_csv(data):
+    fields = data[0].keys() #get fields for csv
+
+    with open("output.csv", 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(data)
 
 def main():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -75,8 +83,7 @@ def main():
     sheet = client.open_by_key(SHEET_ID).sheet1
 
     formatted_data = format_data(sheet)
-    print(formatted_data[0])
-    print(formatted_data[1])
+    create_csv(formatted_data)
 
 
 if __name__ == "__main__":
