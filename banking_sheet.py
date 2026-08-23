@@ -55,6 +55,7 @@ def modify_columns(row:dict):
 def format_data(sheet) -> list[dict]:
     '''format data so it is inline with banking csv sheet'''
     data = sheet.get_all_records()
+    formatted_data = [] 
 
     for i in range(len(data)):
         row = data[i]
@@ -64,8 +65,10 @@ def format_data(sheet) -> list[dict]:
             format_AMOUNT(row)
             fix_description(row, data[i+1])
             modify_columns(row)
+
+            formatted_data.append(row)
         
-    return data
+    return formatted_data
 
 def create_csv(data):
     fields = data[0].keys() #get fields for csv
