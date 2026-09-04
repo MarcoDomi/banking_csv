@@ -52,17 +52,17 @@ def modify_columns(row:dict):
     del row["Additions"]
 
 
-def format_data(sheet) -> list[dict]:
-    '''format data so it is inline with banking csv sheet'''
+def format_data(sheet:gspread.Worksheet) -> list[dict]:
+    '''format data so it is inline with wells fargo csv download'''
     data = sheet.get_all_records()
-    formatted_data = [] 
+    formatted_data = [] #append each row from data once it has been formatted
 
     for i in range(len(data)):
         row = data[i]
-
+        #TODO: FIX FORMATTING
         if row["DATE"] != "":
             row["DATE"] += "/2024"
-            format_AMOUNT(row)
+            format_AMOUNT(row) 
             fix_description(row, data[i+1])
             modify_columns(row)
 
@@ -70,21 +70,22 @@ def format_data(sheet) -> list[dict]:
         
     return formatted_data
 
-def create_csv(data):
-    fields = data[0].keys() #get fields for csv
+def create_csv(data_rows):
+    '''create new csv file from rows of old csv'''
+    fields = data_rows[0].keys() #get fields for csv
 
     with open("output.csv", 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(data)
+        writer.writerows(data_rows)
 
 def main():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     client = gspread.authorize(creds)
 
-    SHEET_ID = "1QbJitEyPlr8LuJauisFQEwhNJHd8DGcSknpH_QT5Kds"
+    SHEET_ID = "1QbJitEyPlr8LuJauisFQEwhNJHd8DGcSknpH_QT5Kds" #google sheet ID
     sheet = client.open_by_key(SHEET_ID).sheet1
-
+    
     formatted_data = format_data(sheet)
     create_csv(formatted_data)
 
