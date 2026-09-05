@@ -63,7 +63,7 @@ def fix_description(data:list[dict], index:int, curr_row:dict):
 
 def modify_columns(row:dict):
     '''add and remove columns from row'''
-    row["CHECK #"] = ""
+    
     row["STATUS"] = "Posted"
     del row["Additions"]
 
@@ -81,7 +81,7 @@ def format_data(sheet:gspread.Worksheet) -> list[dict]:
         if row["DATE"] != "":
             row["DATE"] += "/2024"
 
-            skip_rows = fix_description(data, i+1, row) #add one to start on next row
+            skip_rows = fix_description(data, i+1, row) #add one to i to indicate next row
             format_AMOUNT(row) 
             modify_columns(row)
 
@@ -110,7 +110,7 @@ def main():
     sheet = client.open_by_key(SHEET_ID).sheet1
 
     formatted_data = format_data(sheet)
-    #create_csv(formatted_data)
+    create_csv(formatted_data)
 
 
 if __name__ == "__main__":
