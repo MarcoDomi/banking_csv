@@ -58,7 +58,6 @@ def fix_description(data:list[dict], index:int, curr_row:dict):
         pass #if index goes out of bound -- do nothing
 
     return blank_row_count 
-    
 
 
 def modify_columns(row:dict):
@@ -95,18 +94,19 @@ def format_data(sheet:gspread.Worksheet) -> list[dict]:
 
 def create_csv(data_rows):
     '''create new csv file from rows of old csv'''
-    fields = data_rows[0].keys() #get fields for csv
+    ordered_fields = ['DATE', 'DESCRIPTION', 'AMOUNT', 'CHECK#', 'STATUS']
 
     with open("output.csv", 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fields)
+        writer = csv.DictWriter(csvfile, fieldnames=ordered_fields)
         writer.writeheader()
         writer.writerows(data_rows)
+
 
 def main():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     client = gspread.authorize(creds)
 
-    SHEET_ID = "1dsdO5bnxLvUWTrplAWhyn3J_bfheBb-slVSUNFjXmbA"  # google sheet ID
+    SHEET_ID = "1QohEmkY7goczLtMUbR11Rj-7D38IBjM3EfnQPCE8uEk"  # google sheet ID
     sheet = client.open_by_key(SHEET_ID).sheet1
 
     formatted_data = format_data(sheet)
