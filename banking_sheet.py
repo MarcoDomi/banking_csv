@@ -38,12 +38,27 @@ def format_AMOUNT(row:dict):
     check_amt(row["AMOUNT"])
 
 
-def fix_description(curr_row:dict, next_row:dict):
+def fix_description(data:list[dict], index:int, curr_row:dict):
     '''fix transaction description by concatenating descriptions parts found on separate rows'''
+    blank_row_count = 0 #skip of rows with blank DATES
 
-    desc1 = curr_row["DESCRIPTION"]
-    desc2 = next_row["DESCRIPTION"]
-    curr_row["DESCRIPTION"] = " ".join([desc1, desc2])
+    try:
+        description_list = [curr_row["DESCRIPTION"]]
+        next_row = data[index]
+        while next_row["DATE"] == '': #if a row has no DATE then there must be a DESCRIPTION 
+            description_list.append(str(next_row["DESCRIPTION"])) #some description fragments may be ints so convert to str
+            index += 1
+            blank_row_count += 1
+            next_row = data[index]
+
+        curr_row["DESCRIPTION"] = " ".join(description_list) #joins the DESCRIPTION fragments
+
+        
+    except IndexError:
+        pass #if index goes out of bound -- do nothing
+
+    return blank_row_count 
+    
 
 
 def modify_columns(row:dict):
@@ -65,15 +80,18 @@ def format_data(sheet:gspread.Worksheet) -> list[dict]:
        
         if row["DATE"] != "":
             row["DATE"] += "/2024"
+
+            skip_rows = fix_description(data, i+1, row) #add one to start on next row
             format_AMOUNT(row) 
-            fix_description(row, data[i+1])
             modify_columns(row)
 
             formatted_data.append(row)
+            i += skip_rows
 
         i+=1
         
     return formatted_data
+
 
 def create_csv(data_rows):
     '''create new csv file from rows of old csv'''
