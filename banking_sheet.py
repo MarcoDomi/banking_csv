@@ -95,12 +95,13 @@ def format_data(sheet:gspread.Worksheet) -> list[dict]:
 
 def create_csv(data_rows):
     '''create new csv file from rows of old csv'''
-    fields = data_rows[0].keys() #get fields for csv
+    ordered_fields = ['DATE', 'DESCRIPTION', 'AMOUNT', 'CHECK#', 'STATUS']
 
     with open("output.csv", 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fields)
+        writer = csv.DictWriter(csvfile, fieldnames=ordered_fields)
         writer.writeheader()
         writer.writerows(data_rows)
+
 
 def main():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
