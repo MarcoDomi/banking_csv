@@ -1,7 +1,11 @@
 # edit banking information in google sheets
 import gspread
 import csv
+import sys
 from google.oauth2.service_account import Credentials
+
+if len(sys.argv) != 3:
+    print("ERROR: invalid number of arguments\nUsage: python3 banking_sheet.py sheet_id year")
 
 SERVICE_ACCOUNT_FILE = "intense-acumen-505422-k6-16d08f1e3b27.json"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -45,8 +49,8 @@ def fix_description(data:list[dict], index:int, curr_row:dict):
     try:
         description_list = [curr_row["DESCRIPTION"]]
         next_row = data[index]
-        while next_row["DATE"] == '': #if a row has no DATE then there must be a DESCRIPTION 
-            description_list.append(str(next_row["DESCRIPTION"])) #some description fragments may be ints so convert to str
+        while next_row["DATE"] == '': #if a row has no DATE then there must be a DESCRIPTION fragment
+            description_list.append(str(next_row["DESCRIPTION"])) #some DESCRIPTION fragments might be ints so convert to str
             index += 1
             blank_row_count += 1
             next_row = data[index]
@@ -58,7 +62,6 @@ def fix_description(data:list[dict], index:int, curr_row:dict):
         pass #if index goes out of bound -- do nothing
 
     return blank_row_count 
-    
 
 
 def modify_columns(row:dict):
@@ -75,18 +78,20 @@ def format_data(sheet:gspread.Worksheet) -> list[dict]:
 
     i = 0
     row_count = len(data)
+    year = '/' + sys.argv[2] #use the year submitted as a command line arg 
+    
     while i < row_count:
         row = data[i]
        
         if row["DATE"] != "":
-            row["DATE"] += "/2024"
+            row["DATE"] += year
 
             skip_rows = fix_description(data, i+1, row) #add one to i to indicate next row
             format_AMOUNT(row) 
             modify_columns(row)
 
             formatted_data.append(row)
-            i += skip_rows
+            i += skip_rows #skip rows that have no date
 
         i+=1
         
@@ -107,7 +112,7 @@ def main():
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     client = gspread.authorize(creds)
 
-    SHEET_ID = "1dsdO5bnxLvUWTrplAWhyn3J_bfheBb-slVSUNFjXmbA"  # google sheet ID
+    SHEET_ID = sys.argv[1]  # google sheet ID
     sheet = client.open_by_key(SHEET_ID).sheet1
 
     formatted_data = format_data(sheet)
