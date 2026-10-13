@@ -2,10 +2,14 @@
 import pypdf
 import calendar
 from pathlib import Path
+import sys
 
+if len(sys.argv) < 2:
+    print("ERROR: provide a absolute path directory containing banking PDFs\nUsage: python3 pdf_handler.py <absolute path>")
+    exit()
 
-pdf_dir = Path("banking_pdfs").resolve()
-print(pdf_dir)
+PDF_DIR = Path(sys.argv[1]) #NOTE: should i add a check to see if dir exists?
+
 
 def get_dateYear(pdf_path:Path):
     '''retrieve the date and year from pdf text'''
@@ -24,9 +28,9 @@ def get_dateYear(pdf_path:Path):
 
 def monthly_rename_pdf(): #dont think this function is needed anymore but i will keep it anyway
     '''rename a wells fargo pdf to its month'''
-    for pdf in pdf_dir.iterdir():
+    for pdf in PDF_DIR.iterdir():
         month, year = get_dateYear(pdf)
-        new_path = pdf_dir / f"{month}_{year}.pdf"
+        new_path = PDF_DIR / f"{month}_{year}.pdf"
 
         if new_path.exists():
             print("ERROR: Path already exists. aborting operation")
@@ -37,7 +41,7 @@ def monthly_rename_pdf(): #dont think this function is needed anymore but i will
 def get_pdf_dict():
     '''get dictionary that contains years and months and for each pdf path'''
     pdf_dict = {}
-    for pdf in pdf_dir.iterdir():
+    for pdf in PDF_DIR.iterdir():
         month, year = get_dateYear(pdf)
         if year not in pdf_dict:
             pdf_dict[year] = {}
