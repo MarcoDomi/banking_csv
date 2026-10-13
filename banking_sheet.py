@@ -10,12 +10,6 @@ if len(sys.argv) != 3:
 SERVICE_ACCOUNT_FILE = "intense-acumen-505422-k6-16d08f1e3b27.json"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
-def check_amt(amt):
-    amt_list = amt.split('.')
-    if len(amt_list) == 1:
-        print(amt)
-    elif len(amt_list[1]) < 2:
-        print(amt)
 
 
 def append_decimal(amount:str) -> str:
@@ -39,12 +33,11 @@ def format_AMOUNT(row:dict):
         row["AMOUNT"] *= -1
     
     row["AMOUNT"] = append_decimal(str(row["AMOUNT"]))
-    check_amt(row["AMOUNT"])
 
 
 def fix_description(data:list[dict], index:int, curr_row:dict):
     '''fix transaction description by concatenating descriptions parts found on separate rows'''
-    blank_row_count = 0 #skip of rows with blank DATES
+    blank_row_count = 0 #skip rows with blank DATES
 
     try:
         description_list = [curr_row["DESCRIPTION"]]
@@ -57,7 +50,6 @@ def fix_description(data:list[dict], index:int, curr_row:dict):
 
         curr_row["DESCRIPTION"] = " ".join(description_list) #joins the DESCRIPTION fragments
 
-        
     except IndexError:
         pass #if index goes out of bound -- do nothing
 
@@ -72,7 +64,7 @@ def modify_columns(row:dict):
 
 
 def format_data(sheet:gspread.Worksheet) -> list[dict]:
-    '''format data so it is inline with wells fargo csv download'''
+    '''format data so it is inline with wells fargo banking transaction csv'''
     data = sheet.get_all_records()
     formatted_data = [] #append each row from data once it has been formatted
 
