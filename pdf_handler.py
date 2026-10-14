@@ -32,7 +32,7 @@ def get_last_page(pdf:pypdf.PdfReader) -> int:
     for i in range(page_count-1, -1, -1):
         page = pdf.pages[i]
         if "Transaction history (continued)" in page.extract_text():
-            return i
+            return i + 1 #convert from index to page number
 
 
 def get_pdf_dict() -> dict:
@@ -60,24 +60,21 @@ def merge_pdf():
     pdf_years = list(pdf_dict.keys())
     pdf_years.sort()
 
-    for k in pdf_dict:
-        print(pdf_dict[k])
+    merger = pypdf.PdfWriter()
+    months = list(calendar.month_name)[1:] #slicing removes empty element 
+    for year in pdf_years:
+        for month in months:
+            try:
+                pdf_path = pdf_dict[year][month][0]
+                last_page = pdf_dict[year][month][1]
+                reader = pypdf.PdfReader(pdf_path)
 
-    
-    # merger = pypdf.PdfWriter()
-    # for year in pdf_years:
-    #     months = list(calendar.month_name)[1:] #slicing removes empty element 
-    #     for month in months:
-    #         try:
-    #             pdf_path = pdf_dict[year][month]
-    #             reader = pypdf.PdfReader(pdf_path)
+                merger.append(reader, pages=(second_page, last_page))
+                reader.close()
+            except KeyError:
+                next
 
-    #             page_count = len(reader.pages)
-    #             merger.append(reader, pages=(second_page, page_count - last_pages))
-    #         except KeyError:
-    #             next
-
-    # merger.write("merged.pdf")
+    merger.write("merged.pdf")
 
 
 if __name__ == "__main__":
