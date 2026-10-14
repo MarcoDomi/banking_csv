@@ -26,17 +26,6 @@ def get_dateYear(pdf_path:Path):
     return month, year
 
 
-def monthly_rename_pdf(): #dont think this function is needed anymore but i will keep it anyway
-    '''rename a wells fargo pdf to its month'''
-    for pdf in PDF_DIR.iterdir():
-        month, year = get_dateYear(pdf)
-        new_path = PDF_DIR / f"{month}_{year}.pdf"
-
-        if new_path.exists():
-            print("ERROR: Path already exists. aborting operation")
-
-        pdf.replace(new_path)
-
 
 def get_pdf_dict():
     '''get dictionary that contains years and months and for each pdf path'''
