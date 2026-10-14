@@ -11,9 +11,9 @@ if len(sys.argv) < 2:
 PDF_DIR = Path(sys.argv[1]) #NOTE: should i add a check to see if dir exists?
 
 
-def get_dateYear(pdf_path:Path):
+def get_dateYear(pdf:pypdf.PdfReader) -> str:
     '''retrieve the date and year from pdf text'''
-    pdf = pypdf.PdfReader(pdf_path)
+   
     page = pdf.pages[0]
     
     text_list = page.extract_text().splitlines()
@@ -26,16 +26,23 @@ def get_dateYear(pdf_path:Path):
     return month, year
 
 
+def get_last_page(pdf:pypdf.PdfReader):
+    '''returns the last page in pdf that has bank transaction table'''
+    pass
+
 
 def get_pdf_dict():
-    '''get dictionary that contains years and months and for each pdf path'''
+    '''get dictionary that using year/month for each pdf path'''
     pdf_dict = {}
-    for pdf in PDF_DIR.iterdir():
-        month, year = get_dateYear(pdf)
+    for pdf_path in PDF_DIR.iterdir():
+        pdf = pypdf.PdfReader(pdf_path)
+        
+        month, year = get_dateYear(pdf_path)
+        #TODO get last page that has table
         if year not in pdf_dict:
             pdf_dict[year] = {}
 
-        pdf_dict[year][month] = pdf #there should only be one pdf per month in a given year
+        pdf_dict[year][month] = pdf_path #there should only be one pdf per month in a given year
 
     return pdf_dict
 
