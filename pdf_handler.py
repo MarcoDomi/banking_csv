@@ -1,6 +1,7 @@
 # removes pages and merges pdfs in a certain order that contain wells fargo banking transactions
 import pypdf
 import calendar
+import pdfplumber
 from pathlib import Path
 import sys
 
@@ -35,6 +36,14 @@ def get_last_page(pdf:pypdf.PdfReader) -> int:
             return i + 1 #convert from index to page number
 
 
+#NOTE i am trying to see if i can pull tables from a PdfReader object
+def create_csv(pdf_path:str, last_table:int):
+    with pdfplumber.open(pdf_path) as pdf:
+         #use second page to extract table coordinates
+        print('ok')
+    
+
+
 def get_pdf_dict() -> dict:
     '''get dictionary using year/month for each pdf path'''
     pdf_dict = {}
@@ -43,6 +52,9 @@ def get_pdf_dict() -> dict:
         month, year = get_dateYear(pdf)
         final_page = get_last_page(pdf)
         pdf.close()
+
+        create_csv(pdf_path, final_page) #NOTE i should pass the pdf path instead
+
 
         if year not in pdf_dict:
             pdf_dict[year] = {}
@@ -57,24 +69,24 @@ def merge_pdf():
 
     pdf_dict = get_pdf_dict()
     
-    pdf_years = list(pdf_dict.keys())
-    pdf_years.sort()
+    # pdf_years = list(pdf_dict.keys())
+    # pdf_years.sort()
 
-    merger = pypdf.PdfWriter()
-    months = list(calendar.month_name)[1:] #slicing removes empty element 
-    for year in pdf_years:
-        for month in months:
-            try:
-                pdf_path = pdf_dict[year][month][0]
-                last_page = pdf_dict[year][month][1]
-                reader = pypdf.PdfReader(pdf_path)
+    # merger = pypdf.PdfWriter()
+    # months = list(calendar.month_name)[1:] #slicing removes empty element 
+    # for year in pdf_years:
+    #     for month in months:
+    #         try:
+    #             pdf_path = pdf_dict[year][month][0]
+    #             last_page = pdf_dict[year][month][1]
+    #             reader = pypdf.PdfReader(pdf_path)
 
-                merger.append(reader, pages=(second_page, last_page))
-                reader.close()
-            except KeyError:
-                next
+    #             merger.append(reader, pages=(second_page, last_page))
+    #             reader.close()
+    #         except KeyError:
+    #             next
 
-    merger.write("merged.pdf")
+    # merger.write("merged.pdf")
 
 
 if __name__ == "__main__":
