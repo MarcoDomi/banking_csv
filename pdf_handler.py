@@ -36,12 +36,20 @@ def get_last_page(pdf:pypdf.PdfReader) -> int:
             return i + 1 #convert from index to page number
 
 
-#NOTE i am trying to see if i can pull tables from a PdfReader object
+def read_tables(tables):
+    for table in tables:
+        for row in table:
+            print(row)
+    exit()
+
+
+# NOTE i am trying to see if i can pull tables from a PdfReader object
 def create_csv(pdf_path:str, last_table:int):
     with pdfplumber.open(pdf_path) as pdf:
-         #use second page to extract table coordinates
-        print('ok')
-    
+        page = pdf.pages[1]
+        table_list = page.extract_tables({"vertical_strategy":"text", "horizontal_strategy":"lines", "min_words_vertical":7}) #NOTE i dont understand table settings
+        
+        
 
 
 def get_pdf_dict() -> dict:
