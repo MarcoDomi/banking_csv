@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 
 if len(sys.argv) < 2:
-    print("ERROR: provide a absolute path directory containing banking PDFs\nUsage: python3 pdf_handler.py <absolute path>")
+    print("ERROR: provide a absolute path to the directory containing the banking PDFs\nUsage: python3 pdf_handler.py <absolute path>")
     exit()
 
 PDF_DIR = Path(sys.argv[1]) #NOTE: should i add a check to see if dir exists?
@@ -28,28 +28,63 @@ def get_dateYear(pdf:pypdf.PdfReader) -> str:
 
 
 def get_last_page(pdf:pypdf.PdfReader) -> int:
-    '''returns the last page in pdf that has bank transaction table'''
+    '''returns the index to the last page in pdf with a bank transaction table'''
     page_count = len(pdf.pages)
     for i in range(page_count-1, -1, -1):
         page = pdf.pages[i]
-        if "Transaction history (continued)" in page.extract_text():
-            return i + 1 #convert from index to page number
+        if "Transaction history" in page.extract_text():
+            return i 
 
 
-def read_tables(tables):
+#####
+def visual_table_debug(page):
+    table_setting = {"vertical_strategy":"text", "horizontal_strategy":"lines", "min_words_vertical":7}
+    im = page.to_image(resolution=200)
+    im.debug_tablefinder(table_setting)
+    im.show()
+
+
+def read_table(tables):
     for table in tables:
         for row in table:
             print(row)
     exit()
 
 
-# NOTE i am trying to see if i can pull tables from a PdfReader object
-def create_csv(pdf_path:str, last_table:int):
+def page_tester(page:pdfplumber.page):
+    '''test out page methods. will delete later'''
+
+    line_list = page.lines[1:] #cut off the first line of page
+    top_boundary = line_list[0]
+    im = page.to_image(resolution=200)
+
+    prev_linewidth = top_boundary["linewidth"]
+    for index in range(len(line_list)):
+        if line_list[index]["linewidth"] > prev_linewidth:
+            print(index - 1)
+            im.draw_line(line_list[index-1], stroke_width=3)
+            im.show()
+            break
+        prev_linewidth = line_list[index]["linewidth"]
+
+    #TODO crop the page 
+    exit()
+#####
+
+
+def create_csv(pdf_path:str, last_page:int):
+    '''create a csv for for a banking transaction pdf'''
+    table_setting = {"vertical_strategy":"text", "horizontal_strategy":"lines", "min_words_vertical":7} #NOTE i dont understand table settings
+
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[1]
-        table_list = page.extract_tables({"vertical_strategy":"text", "horizontal_strategy":"lines", "min_words_vertical":7}) #NOTE i dont understand table settings
-        
-        
+        #TODO create for loop to go thru each page before last page and store each table in table_list. 
+        table_list = page.extract_tables(table_setting)
+
+        f_page = pdf.pages[last_page]
+        page_tester(f_page)
+        #visual_table_debug(f_page)
+        #table_list2 = final_page.extract_tables(table_setting)
 
 
 def get_pdf_dict() -> dict:
@@ -61,8 +96,8 @@ def get_pdf_dict() -> dict:
         final_page = get_last_page(pdf)
         pdf.close()
 
-        create_csv(pdf_path, final_page) #NOTE i should pass the pdf path instead
-
+        #create_csv(pdf_path, final_page) #NOTE i should pass the pdf path instead
+        create_csv("/home/marcodom/repos/banking_csv/banking_pdfs/March_2024.pdf", final_page) #NOTE delete later
 
         if year not in pdf_dict:
             pdf_dict[year] = {}
