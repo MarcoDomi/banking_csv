@@ -32,7 +32,7 @@ def get_last_page(pdf:pypdf.PdfReader) -> int:
     page_count = len(pdf.pages)
     for i in range(page_count-1, -1, -1):
         page = pdf.pages[i]
-        if "Transaction history" in page.extract_text():
+        if "Transaction history (continued)" in page.extract_text(): #if wells-fargo changes the PDF text then this could return a wrong page 
             return i 
 
 
@@ -95,9 +95,9 @@ def get_pdf_dict() -> dict:
         month, year = get_dateYear(pdf)
         final_page = get_last_page(pdf)
         pdf.close()
-
+        print(pdf_path.name,final_page+1)
         #create_csv(pdf_path, final_page) #NOTE i should pass the pdf path instead
-        create_csv("/home/marcodom/repos/banking_csv/banking_pdfs/March_2024.pdf", final_page) #NOTE delete later
+        #create_csv("/home/marcodom/repos/banking_csv/banking_pdfs/March_2024.pdf", final_page) #NOTE delete later
 
         if year not in pdf_dict:
             pdf_dict[year] = {}
