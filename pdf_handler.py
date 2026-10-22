@@ -51,8 +51,8 @@ def read_table(tables):
     exit()
 
 
-def page_tester(page:pdfplumber.page):
-    '''test out page methods. will delete later'''
+def final_table_extract(page:pdfplumber.page):
+    '''crop page and extract final table'''
 
     line_list = page.lines[1:] #cut off the first line of page
     top_boundary = line_list[0]
@@ -81,10 +81,10 @@ def create_csv(pdf_path:str, last_page:int):
         #TODO create for loop to go thru each page before last page and store each table in table_list. 
         table_list = page.extract_tables(table_setting)
 
-        f_page = pdf.pages[last_page]
-        page_tester(f_page)
+        # f_page = pdf.pages[last_page]
+        # final_table_extract(f_page)
         #visual_table_debug(f_page)
-        #table_list2 = final_page.extract_tables(table_setting)
+       
 
 
 def get_pdf_dict() -> dict:
@@ -96,7 +96,7 @@ def get_pdf_dict() -> dict:
         final_page = get_last_page(pdf)
         pdf.close()
         print(pdf_path.name,final_page+1)
-        #create_csv(pdf_path, final_page) #NOTE i should pass the pdf path instead
+        create_csv(pdf_path, final_page) #NOTE i should pass the pdf path instead
         #create_csv("/home/marcodom/repos/banking_csv/banking_pdfs/March_2024.pdf", final_page) #NOTE delete later
 
         if year not in pdf_dict:
