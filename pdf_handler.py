@@ -75,11 +75,12 @@ def final_table_extract(page:pdfplumber.page):
 def create_csv(pdf_path:str, last_page:int):
     '''create a csv for for a banking transaction pdf'''
     table_setting = {"vertical_strategy":"text", "horizontal_strategy":"lines", "min_words_vertical":7} #NOTE i dont understand table settings
-
+    table_list = []
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[1]
-        #TODO create for loop to go thru each page before last page and store each table in table_list. 
-        table_list = page.extract_tables(table_setting)
+        second_page = 1
+        for i in range(second_page, last_page):
+            table = pdf.pages[i].extract_tables(table_setting)
+            table_list.append(table)
 
         # f_page = pdf.pages[last_page]
         # final_table_extract(f_page)
@@ -95,7 +96,8 @@ def get_pdf_dict() -> dict:
         month, year = get_dateYear(pdf)
         final_page = get_last_page(pdf)
         pdf.close()
-        print(pdf_path.name,final_page+1)
+
+        print(pdf_path.name,final_page)
         create_csv(pdf_path, final_page) #NOTE i should pass the pdf path instead
         #create_csv("/home/marcodom/repos/banking_csv/banking_pdfs/March_2024.pdf", final_page) #NOTE delete later
 
