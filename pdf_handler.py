@@ -81,11 +81,13 @@ def create_csv(pdf_path:str, last_page:int):
         for i in range(second_page, last_page):
             table = pdf.pages[i].extract_tables(table_setting)
             table_list.append(table)
+            visual_table_debug(pdf.pages[i])
+    exit()
 
         # f_page = pdf.pages[last_page]
         # final_table_extract(f_page)
         #visual_table_debug(f_page)
-       
+
 
 
 def get_pdf_dict() -> dict:
