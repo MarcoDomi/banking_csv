@@ -3,9 +3,13 @@ import pdfplumber
 class wells_fargo_extractor:
     '''performs table extraction on Wells Fargo bank transaction PDF files'''
     def __init__(self, pdf_path:str):
-        self.PDF_PATH = pdf_path
+        self.pdf = pdfplumber.open(pdf_path)
+        self.page_count = len(self.pdf.pages)
         self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[60, 100, 148, 400, 450, 520]}
 
+    def __del__(self):
+        self.pdf.close()
+        print("goodbye")
 
     def extract_tables(self):
         '''extracts all tables from a wells fargo banking pdf and returns list of all tables'''
