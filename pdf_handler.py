@@ -4,6 +4,7 @@ import calendar
 import pdfplumber
 from pathlib import Path
 import sys
+import wf_extractor
 
 if len(sys.argv) < 2:
     print("ERROR: provide a absolute path to the directory containing the banking PDFs\nUsage: python3 pdf_handler.py <absolute path>")

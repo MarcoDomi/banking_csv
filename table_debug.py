@@ -14,9 +14,13 @@ pdf_path = Path("banking_pdfs/April_2024.pdf")
 #     print(header["text"], header["doctop"], header["x0"], header["x1"])
 
 
-with pdfplumber.open(pdf_path, pages=[2,3,4]) as pdf:
-    for page in pdf.pages:
-        table = page.crop((60, 118, 520, page.height))
-        im = table.to_image(resolution=200)
-        im.debug_tablefinder({"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[60, 100, 148, 400, 450, 520]})
-        im.show()
+# with pdfplumber.open(pdf_path, pages=[2,3,4]) as pdf:
+#     for page in pdf.pages:
+#         table = page.crop((60, 118, 520, page.height))
+#         im = table.to_image(resolution=200)
+#         im.debug_tablefinder({"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[60, 100, 148, 400, 450, 520]})
+#         im.show()
+import wf_extractor
+
+wf1 = wf_extractor.wells_fargo_extractor(pdf_path)
+wf1.extract_tables()
