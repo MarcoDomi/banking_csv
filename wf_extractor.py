@@ -16,26 +16,31 @@ class wells_fargo_extractor:
         '''extracts all tables from a wells fargo banking pdf and returns list of all tables'''
         table_list = []
         
-        page_num = 1 #start at second page
+        page_index = 1 #start at second page
         
-        while not self._is_final_page(page_num):
+        while not self._is_final_page(page_index):
             print("general")
-            self._general_table_extraction(self.pdf.pages[page_num])
-            page_num += 1
+            self._general_table_extraction(page_index)
+            page_index += 1
         print("final")
         self._final_table_extraction()
 
         return table_list
             
 
-    def _general_table_extraction(self, page):
+    def _general_table_extraction(self, page_index):
+        '''extracts and returns the table from page '''
+        page = self.pdf.pages[page_index]
         crop_values = (60, 118, 520, page.height)
-        pass
+        cropped_page = page.crop(crop_values)
+        self._table_image_debug(cropped_page)
+
 
     def _final_table_extraction(self):
         '''extracting final table must be handled differently due to differing varying table size'''
 
         pass
+
 
     def _is_final_page(self, curr_page_index):
         '''use next page to determine if current page has final table'''
@@ -49,3 +54,9 @@ class wells_fargo_extractor:
         except IndexError:
             print("outta pages")
             return True
+
+
+    def _table_image_debug(self, page):
+        im = page.to_image(resolution=200)
+        im.debug_tablefinder(self.table_settings)
+        im.show()
