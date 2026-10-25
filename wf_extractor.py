@@ -5,7 +5,7 @@ class wells_fargo_extractor:
     def __init__(self, pdf_path:str):
         self.pdf = pdfplumber.open(pdf_path)
         self.page_count = len(self.pdf.pages)
-        self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[60, 100, 148, 400, 450, 520]}
+        self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[60, 100, 148, 400, 450, 520]} #vertical lines are hardcoded. can cause issues if pdf layout is changed
 
 
     def __del__(self):
@@ -16,12 +16,13 @@ class wells_fargo_extractor:
         '''extracts all tables from a wells fargo banking pdf and returns list of all tables'''
         table_list = []
         
-        page_index = 1 #start at second page
+        page_index = 1 #start at second page to skip title page
         
         while not self._is_final_page(page_index):
             print("general")
-            self._general_table_extraction(page_index)
+            table_list.append(self._general_table_extraction(page_index))
             page_index += 1
+
         print("final")
         self._final_table_extraction()
 
@@ -31,9 +32,10 @@ class wells_fargo_extractor:
     def _general_table_extraction(self, page_index):
         '''extracts and returns the table from page '''
         page = self.pdf.pages[page_index]
-        crop_values = (60, 118, 520, page.height)
-        cropped_page = page.crop(crop_values)
-        self._table_image_debug(cropped_page)
+        cropped_page = page.crop((60, 118, 520, page.height))
+        table = cropped_page.find_table(self.table_settings)
+
+        return table
 
 
     def _final_table_extraction(self):
@@ -56,7 +58,7 @@ class wells_fargo_extractor:
             return True
 
 
-    def _table_image_debug(self, page):
+    def _table_debug(self, page):
         im = page.to_image(resolution=200)
         im.debug_tablefinder(self.table_settings)
         im.show()
