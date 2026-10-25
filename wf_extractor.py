@@ -9,6 +9,7 @@ class wells_fargo_extractor:
 
 
     def __del__(self):
+        print("closing pdfplumber object...")
         self.pdf.close()
         
 
@@ -24,7 +25,7 @@ class wells_fargo_extractor:
             page_index += 1
 
         print("final")
-        self._final_table_extraction()
+        table_list.append(self._final_table_extraction(page_index))
 
         return table_list
             
@@ -38,10 +39,27 @@ class wells_fargo_extractor:
         return table
 
 
-    def _final_table_extraction(self):
+    def _final_table_extraction(self, page_index):
         '''extracting final table must be handled differently due to differing varying table size'''
+        page = self.pdf.pages[page_index]
+        bottom = self._get_crop_bottom(page)
 
-        pass
+        cropped_page = page.crop((60,118,520,bottom))
+        table = cropped_page.find_table(self.table_settings)
+
+        return table
+        
+
+    def _get_crop_bottom(self, page):
+        '''finds and returns bottom value for cropping the final page'''
+        line_list = page.lines
+        
+        prev_line = line_list[1] #start at second line on page
+        for index in range(2,len(line_list)):
+            if line_list[index]['linewidth'] > prev_line["linewidth"]:
+                return prev_line['bottom']
+                
+            prev_line = line_list[index]
 
 
     def _is_final_page(self, curr_page_index):

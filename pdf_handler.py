@@ -78,16 +78,15 @@ def create_csv(pdf_path:str, last_page:int):
     table_setting = {"vertical_strategy":"text", "horizontal_strategy":"lines", "min_words_vertical":7} #NOTE i dont understand table settings
     table_list = []
     with pdfplumber.open(pdf_path) as pdf:
-        second_page = 1
-        for i in range(second_page, last_page):
-            table = pdf.pages[i].extract_tables(table_setting)
-            table_list.append(table)
-            visual_table_debug(pdf.pages[i])
-    exit()
+        # second_page = 1
+        # for i in range(second_page, last_page):
+        #     table = pdf.pages[i].extract_tables(table_setting)
+        #     table_list.append(table)
+        #     visual_table_debug(pdf.pages[i])
+    
 
-        # f_page = pdf.pages[last_page]
-        # final_table_extract(f_page)
-        #visual_table_debug(f_page)
+        f_page = pdf.pages[last_page]
+        final_table_extract(f_page)
 
 
 
