@@ -1,7 +1,7 @@
 import pdfplumber
 from pathlib import Path
 
-pdf_path = Path("banking_pdfs/April_2024.pdf")
+pdf_path = Path("banking_pdfs/May_2024.pdf")
 
 
 # with pdfplumber.open(pdf_path, pages=[2,3,4]) as pdf:
@@ -24,3 +24,4 @@ import wf_extractor
 
 wf1 = wf_extractor.wells_fargo_extractor(pdf_path)
 wf1.extract_tables()
+#print(wf1._is_final_page(4))
