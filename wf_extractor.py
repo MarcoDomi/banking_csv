@@ -13,7 +13,7 @@ class wells_fargo_extractor:
         self.pdf.close()
         
 
-    def extract_tables(self):
+    def extract_tables(self) -> list:
         '''extracts all tables from a wells fargo banking pdf and returns list of all tables'''
         table_list = []
         
