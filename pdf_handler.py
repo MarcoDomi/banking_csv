@@ -1,7 +1,6 @@
 # removes pages and merges pdfs in a certain order that contain wells fargo banking transactions
 import pypdf
 import calendar
-import pdfplumber
 from pathlib import Path
 import sys
 import wf_extractor
@@ -28,27 +27,11 @@ def get_dateYear(pdf:pypdf.PdfReader) -> str:
     return month, year
 
 
-
-#####
-def visual_table_debug(page):
-    table_setting = {"vertical_strategy":"text", "horizontal_strategy":"lines", "min_words_vertical":7}
-    im = page.to_image(resolution=200)
-    im.debug_tablefinder(table_setting)
-    im.show()
-
-
-def read_table(tables):
-    for table in tables:
-        for row in table:
-            print(row)
-    exit()
-#####
-
-
 def create_csv(pdf_path:str):
     '''create a csv for for a banking transaction pdf'''
-    
-    table_list = wf_extractor.wells_fargo_extractor()
+
+    wf1 = wf_extractor.wells_fargo_extractor(pdf_path)
+    table_list = wf1.extract_tables()
     
     
 
@@ -63,9 +46,8 @@ def get_csv_dict() -> dict:
         pdf.close()
 
         print(pdf_path.name)
-        create_csv(pdf_path) #NOTE i should pass the pdf path instead
-        #create_csv("/home/marcodom/repos/banking_csv/banking_pdfs/March_2024.pdf") #NOTE delete later
-
+        create_csv(pdf_path) 
+        exit()
         if year not in csv_dict:
             csv_dict[year] = {}
         csv_dict[year][month] = pdf_path #there should only be one pdf per month in a given year
