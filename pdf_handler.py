@@ -54,9 +54,9 @@ def create_csv(pdf_path:str):
 
         
 
-def get_pdf_dict() -> dict:
-    '''get dictionary using year/month for each pdf path'''
-    pdf_dict = {}
+def get_csv_dict() -> dict:
+    '''create dictionary using year/month for each pdf path'''
+    csv_dict = {}
     for pdf_path in PDF_DIR.iterdir():
         pdf = pypdf.PdfReader(pdf_path)
         month, year = get_dateYear(pdf)
@@ -66,18 +66,18 @@ def get_pdf_dict() -> dict:
         create_csv(pdf_path) #NOTE i should pass the pdf path instead
         #create_csv("/home/marcodom/repos/banking_csv/banking_pdfs/March_2024.pdf") #NOTE delete later
 
-        if year not in pdf_dict:
-            pdf_dict[year] = {}
-        pdf_dict[year][month] = pdf_path #there should only be one pdf per month in a given year
+        if year not in csv_dict:
+            csv_dict[year] = {}
+        csv_dict[year][month] = pdf_path #there should only be one pdf per month in a given year
 
-    return pdf_dict
+    return csv_dict
 
 
 def merge_pdf(): 
     '''merge all pdfs in banking_pdfs into a single pdf'''
     second_page = 1 #start at second page
 
-    pdf_dict = get_pdf_dict()
+    pdf_dict = get_csv_dict()
     
     # pdf_years = list(pdf_dict.keys())
     # pdf_years.sort()
