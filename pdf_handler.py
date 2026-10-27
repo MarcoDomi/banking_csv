@@ -37,9 +37,9 @@ def get_table(pdf_path:str):
     return table
 
    
-def get_csv_dict() -> dict:
+def get_table_dict() -> dict:
     '''create dictionary using year/month for each pdf path'''
-    csv_dict = {}
+    table_dict = {}
     for pdf_path in PDF_DIR.iterdir():
         pdf = pypdf.PdfReader(pdf_path)
         month, year = get_dateYear(pdf)
@@ -48,34 +48,29 @@ def get_csv_dict() -> dict:
         print(pdf_path.name)
         table = get_table(pdf_path) 
         
-        if year not in csv_dict:
-            csv_dict[year] = {}
-        csv_dict[year][month] = table #there should only be one pdf per month in a given year
+        if year not in table_dict:
+            table_dict[year] = {}
+        table_dict[year][month] = table #there should only be one pdf per month in a given year
 
-    return csv_dict
+    return table_dict
 
 
-def merge_pdf(): 
+def create_csv(): 
     '''merge all pdfs in banking_pdfs into a single pdf'''
+    table_dict = get_table_dict()
 
-    csv_dict = get_csv_dict()
-
-    print(csv_dict["2024"].keys())
-    
-    pdf_years = list(csv_dict.keys())
+    pdf_years = list(table_dict.keys())
     pdf_years.sort()
 
-   
     months = list(calendar.month_name)[1:] #slicing removes empty element 
     for year in pdf_years:
+        tables_in_year = table_dict[year]
         for month in months:
             try:
-                pass
+                print(month, len(tables_in_year[month]))
             except KeyError:
                 next
 
     
-
-
 if __name__ == "__main__":
-    merge_pdf()
+    create_csv()
