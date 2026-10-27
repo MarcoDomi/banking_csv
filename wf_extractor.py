@@ -14,18 +14,16 @@ class wells_fargo_extractor:
         
 
     def extract_tables(self) -> list:
-        '''extracts all tables from a wells fargo banking pdf and returns list of all tables'''
-        table_list = []
+        '''extracts all tables from a wells fargo banking pdf and returns a single large table'''
+        table_list = [["Date", "Check Number", "Description", "Deposit/Credits", "Withdrawals/Debits"]]
         
         page_index = 1 #start at second page to skip title page
         
         while not self._is_final_page(page_index):
-            print("general")
-            table_list.append(self._general_table_extraction(page_index))
+            table_list.extend(self._general_table_extraction(page_index))
             page_index += 1
 
-        print("final")
-        table_list.append(self._final_table_extraction(page_index))
+        table_list.extend(self._final_table_extraction(page_index))
 
         return table_list
             
@@ -36,7 +34,7 @@ class wells_fargo_extractor:
         cropped_page = page.crop((60, 118, 520, page.height))
         table = cropped_page.find_table(self.table_settings)
 
-        return table
+        return table.extract()
 
 
     def _final_table_extraction(self, page_index):
@@ -47,7 +45,7 @@ class wells_fargo_extractor:
         cropped_page = page.crop((60,118,520,bottom))
         table = cropped_page.find_table(self.table_settings)
 
-        return table
+        return table.extract()
         
 
     def _get_crop_bottom(self, page):
