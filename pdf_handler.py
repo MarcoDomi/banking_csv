@@ -4,6 +4,7 @@ import calendar
 from pathlib import Path
 import sys
 import wf_extractor
+import csv
 
 if len(sys.argv) < 2:
     print("ERROR: provide a absolute path to the directory containing the banking PDFs\nUsage: python3 pdf_handler.py <absolute path>")
@@ -27,16 +28,15 @@ def get_dateYear(pdf:pypdf.PdfReader) -> str:
     return month, year
 
 
-def create_csv(pdf_path:str):
+def get_table(pdf_path:str):
     '''create a csv for for a banking transaction pdf'''
 
     wf1 = wf_extractor.wells_fargo_extractor(pdf_path)
-    table_list = wf1.extract_tables()
-    
-    
+    table = wf1.extract_tables()
 
-        
+    return table
 
+   
 def get_csv_dict() -> dict:
     '''create dictionary using year/month for each pdf path'''
     csv_dict = {}
@@ -46,39 +46,35 @@ def get_csv_dict() -> dict:
         pdf.close()
 
         print(pdf_path.name)
-        create_csv(pdf_path) 
-        exit()
+        table = get_table(pdf_path) 
+        
         if year not in csv_dict:
             csv_dict[year] = {}
-        csv_dict[year][month] = pdf_path #there should only be one pdf per month in a given year
+        csv_dict[year][month] = table #there should only be one pdf per month in a given year
 
     return csv_dict
 
 
 def merge_pdf(): 
     '''merge all pdfs in banking_pdfs into a single pdf'''
-    second_page = 1 #start at second page
 
-    pdf_dict = get_csv_dict()
+    csv_dict = get_csv_dict()
+
+    print(csv_dict["2024"].keys())
     
-    # pdf_years = list(pdf_dict.keys())
-    # pdf_years.sort()
+    pdf_years = list(csv_dict.keys())
+    pdf_years.sort()
 
-    # merger = pypdf.PdfWriter()
-    # months = list(calendar.month_name)[1:] #slicing removes empty element 
-    # for year in pdf_years:
-    #     for month in months:
-    #         try:
-    #             pdf_path = pdf_dict[year][month][0]
-    #             last_page = pdf_dict[year][month][1]
-    #             reader = pypdf.PdfReader(pdf_path)
+   
+    months = list(calendar.month_name)[1:] #slicing removes empty element 
+    for year in pdf_years:
+        for month in months:
+            try:
+                pass
+            except KeyError:
+                next
 
-    #             merger.append(reader, pages=(second_page, last_page))
-    #             reader.close()
-    #         except KeyError:
-    #             next
-
-    # merger.write("merged.pdf")
+    
 
 
 if __name__ == "__main__":
