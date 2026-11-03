@@ -13,17 +13,17 @@ if len(sys.argv) < 2:
 PDF_DIR = Path(sys.argv[1]) #NOTE: should i add a check to see if dir exists?
 
 
-def get_dateYear(pdf:pypdf.PdfReader) -> str:
+def get_dateYear(pdf_path:Path) -> str:
     '''retrieve the date and year from pdf text'''
-   
-    page = pdf.pages[0]
-    
-    text_list = page.extract_text().splitlines()
-    dateline = text_list[1]
-    date = dateline.split(' ')
+    with pypdf.PdfReader(pdf_path) as pdf:
+        page = pdf.pages[0]
+        
+        text_list = page.extract_text().splitlines()
+        dateline = text_list[1]
+        date = dateline.split(' ')
 
-    month = date[0]
-    year = date[2]
+        month = date[0]
+        year = date[2]
 
     return month, year
 
@@ -41,10 +41,9 @@ def get_table_dict() -> dict:
     '''create dictionary using year/month for each pdf path'''
     table_dict = {}
     for pdf_path in PDF_DIR.iterdir():
-        pdf = pypdf.PdfReader(pdf_path)
-        month, year = get_dateYear(pdf)
-        pdf.close()
-
+        
+        month, year = get_dateYear(pdf_path)
+        
         print(pdf_path.name)
         table = get_table(pdf_path) 
         
