@@ -36,7 +36,7 @@ def get_table(pdf_path:str):
 
     return table
 
-   
+
 def get_table_dict() -> dict:
     '''create dictionary using year/month for each pdf path'''
     table_dict = {}
@@ -63,14 +63,18 @@ def create_csv():
     pdf_years.sort()
 
     months = list(calendar.month_name)[1:] #slicing removes empty element 
-    for year in pdf_years:
-        tables_in_year = table_dict[year]
-        for month in months:
-            try:
-                print(month, len(tables_in_year[month]))
-            except KeyError:
-                next
+    with open("test.csv",'w',newline='') as csvfile:
+        bankwriter = csv.writer(csvfile)
+        bankwriter.writerow(["Date", "Check Number", "Description", "Deposit/Credits", "Withdrawals/Debits"])
+        for year in pdf_years:
+            tables_in_year = table_dict[year]
+            for month in months:
+                try:
+                    for row in tables_in_year[month]:
+                        bankwriter.writerow(row)
+                except KeyError:
+                    next
 
-    
+
 if __name__ == "__main__":
     create_csv()

@@ -15,7 +15,7 @@ class wells_fargo_extractor:
 
     def extract_tables(self) -> list:
         '''extracts all tables from a wells fargo banking pdf and returns a single large table'''
-        table_list = [["Date", "Check Number", "Description", "Deposit/Credits", "Withdrawals/Debits"]]
+        table_list = []
         
         page_index = 1 #start at second page to skip title page
         
@@ -49,12 +49,12 @@ class wells_fargo_extractor:
         
 
     def _get_crop_bottom(self, page):
-        '''finds and returns bottom value for cropping the final page'''
+        '''finds and returns 'bottom' value for cropping the final page'''
         line_list = page.lines
         
         prev_line = line_list[1] #start at second line on page
         for index in range(2,len(line_list)):
-            if line_list[index]['linewidth'] > prev_line["linewidth"]:
+            if line_list[index]['linewidth'] > prev_line["linewidth"]: #stop iterating thru page lines when we arrive at a line that is thicker
                 return prev_line['bottom']
                 
             prev_line = line_list[index]
