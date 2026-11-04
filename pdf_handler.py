@@ -6,8 +6,11 @@ import sys
 import wf_extractor
 import csv
 
+options = ["--alt_output", "-alt"]
+
 if len(sys.argv) < 2:
-    print("ERROR: provide a absolute path to the directory containing the banking PDFs\nUsage: python3 pdf_handler.py <absolute path>")
+    usage = f"python3 pdf_handler.py [OPTION] <DIR absolute path>"
+    print(f"ERROR: provide a absolute path to the directory containing the banking PDFs\nUsage: {usage}")
     exit()
 
 PDF_DIR = Path(sys.argv[1]) #NOTE: should i add a check to see if dir exists?
