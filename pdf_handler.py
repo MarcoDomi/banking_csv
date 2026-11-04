@@ -54,26 +54,32 @@ def get_table_dict() -> dict:
     return table_dict
 
 
-def create_csv(): 
-    '''merge all pdfs in banking_pdfs into a single pdf'''
+def create_csv1(csvfile, table_years:list, table_dict:dict):
+    '''option 1 for creating the banking transaction csv file'''
+    months = list(calendar.month_name)[1:] #slicing removes empty element
+
+    bankwriter = csv.writer(csvfile)
+    bankwriter.writerow(["Date", "Check Number", "Description", "Deposit/Credits", "Withdrawals/Debits"])
+    for year in table_years:
+        tables_in_year = table_dict[year]
+        for month in months:
+            try:
+                for row in tables_in_year[month]:
+                    bankwriter.writerow(row)
+            except KeyError:
+                next
+
+
+def csv_conversion(): 
+    '''converts all banking pdfs into a single csv file'''
     table_dict = get_table_dict()
 
-    pdf_years = list(table_dict.keys())
-    pdf_years.sort()
+    table_years = list(table_dict.keys())
+    table_years.sort()
 
-    months = list(calendar.month_name)[1:] #slicing removes empty element 
-    with open("test.csv",'w',newline='') as csvfile:
-        bankwriter = csv.writer(csvfile)
-        bankwriter.writerow(["Date", "Check Number", "Description", "Deposit/Credits", "Withdrawals/Debits"])
-        for year in pdf_years:
-            tables_in_year = table_dict[year]
-            for month in months:
-                try:
-                    for row in tables_in_year[month]:
-                        bankwriter.writerow(row)
-                except KeyError:
-                    next
+    with open("banking_transaction.csv",'w',newline='') as csvfile:
+        create_csv1(csvfile, table_years, table_dict)
 
 
 if __name__ == "__main__":
-    create_csv()
+    csv_conversion()
