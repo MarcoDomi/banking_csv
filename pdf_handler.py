@@ -7,13 +7,27 @@ import wf_extractor
 import csv
 
 options = ["--alt_output", "-alt"]
+usage = f"\nUsage: python3 pdf_handler.py [OPTION] <DIR absolute path>"
 
-if len(sys.argv) < 2:
-    usage = f"python3 pdf_handler.py [OPTION] <DIR absolute path>"
-    print(f"ERROR: provide a absolute path to the directory containing the banking PDFs\nUsage: {usage}")
-    exit()
+if len(sys.argv) == 2:
+    if not Path(sys.argv[1]).exists():
+        raise Exception(f"Error: provide a valid absolute path to directory containing banking PDFs{usage}")
+    path_index = 1
+    option_bool = False
 
-PDF_DIR = Path(sys.argv[1]) #NOTE: should i add a check to see if dir exists?
+elif len(sys.argv) == 3:
+    if not sys.argv[1] in options:
+        raise Exception(f"Error: invalid option{usage}")
+    if not Path(sys.argv[2]).exists():
+        raise Exception(f"Error: provide a valid absolute path to directory containing banking PDFs{usage}")
+    path_index = 2
+    option_bool = True
+else:
+    raise Exception(f"ERROR: invalid number of arguments{usage}")
+
+
+PDF_DIR = Path(sys.argv[path_index]) #NOTE: should i add a check to see if dir exists?
+ALT_OUTPUT = option_bool
 
 
 def get_dateYear(pdf_path:Path) -> str:
@@ -81,7 +95,10 @@ def csv_conversion():
     table_years.sort()
 
     with open("banking_transaction.csv",'w',newline='') as csvfile:
-        create_csv1(csvfile, table_years, table_dict)
+        if not ALT_OUTPUT:
+            create_csv1(csvfile, table_years, table_dict)
+        else:
+            print("alt")
 
 
 if __name__ == "__main__":
