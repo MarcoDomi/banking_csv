@@ -28,24 +28,24 @@ class wells_fargo_extractor:
         return table_list
             
 
-    def _general_table_extraction(self, page_index):
+    def _general_table_extraction(self, page_index:int) -> list[list[str]]:
         '''extracts and returns the table from page '''
         page = self.pdf.pages[page_index]
         cropped_page = page.crop((60, 118, 520, page.height))
-        table = cropped_page.find_table(self.table_settings)
+        table = cropped_page.extract_table(self.table_settings)
 
-        return table.extract()
+        return table
 
 
-    def _final_table_extraction(self, page_index):
+    def _final_table_extraction(self, page_index:int) -> list[list[str]]:
         '''extracting final table must be handled differently due to differing varying table size'''
         page = self.pdf.pages[page_index]
         bottom = self._get_crop_bottom(page)
 
         cropped_page = page.crop((60,118,520,bottom))
-        table = cropped_page.find_table(self.table_settings)
+        table = cropped_page.extract_table(self.table_settings)
 
-        return table.extract()
+        return table
         
 
     def _get_crop_bottom(self, page):
