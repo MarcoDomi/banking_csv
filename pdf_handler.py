@@ -1,10 +1,11 @@
 # removes pages and merges pdfs in a certain order that contain wells fargo banking transactions
 import pypdf
 import calendar
-from pathlib import Path
+import re
 import sys
 import wf_extractor
 import csv
+from pathlib import Path
 
 options = ["--alt_output", "-alt"]
 usage = f"\nUsage: python3 pdf_handler.py [OPTION] <DIR absolute path>"
@@ -30,18 +31,20 @@ PDF_DIR = Path(sys.argv[path_index]) #NOTE: should i add a check to see if dir e
 ALT_OUTPUT = option_bool
 
 
-def get_dateYear(pdf_path:Path) -> str:
-    '''retrieve the date and year from pdf text'''
+def get_monthYear(pdf_path:Path) -> str:
+    '''retrieve the month and year from pdf text'''
+
     with pypdf.PdfReader(pdf_path) as pdf:
         page = pdf.pages[0]
+
+        page_text = page.extract_text()
+        date_re = re.compile(r"[A-Z][a-z]{2,} \d{1,2}, \d{4}")
+        date = date_re.search(page_text).group()
+        date_split = date.split()
+
+        month = date_split[0]
+        year = date_split[2]
         
-        text_list = page.extract_text().splitlines()
-        dateline = text_list[1]
-        date = dateline.split(' ')
-
-        month = date[0]
-        year = date[2]
-
     return month, year
 
 
@@ -59,7 +62,7 @@ def get_table_dict() -> dict:
     table_dict = {}
     for pdf_path in PDF_DIR.iterdir():
         
-        month, year = get_dateYear(pdf_path)
+        month, year = get_monthYear(pdf_path)
         
         print(pdf_path.name)
         table = get_table(pdf_path) 
