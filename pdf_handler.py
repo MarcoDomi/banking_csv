@@ -71,7 +71,7 @@ def get_table_dict() -> dict:
     return table_dict
 
 
-def create_csv1(csvfile, table_years:list, table_dict:dict):
+def csv_writer1(csvfile, table_years:list, table_dict:dict):
     '''option 1 for creating the banking transaction csv file'''
     months = list(calendar.month_name)[1:] #slicing removes empty element
 
@@ -87,6 +87,38 @@ def create_csv1(csvfile, table_years:list, table_dict:dict):
                 next
 
 
+def process_row(row:list, year:int) -> dict:
+    """convert row to dictionary and edit row values"""
+
+    headers = ["DATE", "CHECK #", "DESCRIPTION", "AMOUNT", "WITHDRAW"]
+    row_dict = dict(zip(headers, row))
+
+    row_dict["DATE"] += "/" + year
+    if row_dict["AMOUNT"] == '':
+        row_dict["AMOUNT"] = '-' + row_dict["WITHDRAW"]
+    del row_dict["WITHDRAW"]
+
+    return row_dict
+
+
+def alt_csv_writer(csvfile, table_years:list[str], table_dict:dict):
+    months = list(calendar.month_name)[1:]
+
+    ordered_fields = ["DATE", "DESCRIPTION", "AMOUNT", "CHECK #"]
+    bankwriter = csv.DictWriter(csvfile, fieldnames=ordered_fields)
+    bankwriter.writeheader()
+
+    for year in table_years:
+        tables_in_year = table_dict[year]
+        for month in months:
+            try: 
+                for row in tables_in_year[month]:
+                    row_dict = process_row(row, year)
+                    bankwriter.writerow(row_dict)
+            except KeyError:
+                next
+
+
 def csv_conversion(): 
     '''converts all banking pdfs into a single csv file'''
     table_dict = get_table_dict()
@@ -94,11 +126,11 @@ def csv_conversion():
     table_years = list(table_dict.keys())
     table_years.sort()
 
-    with open("banking_transaction.csv",'w',newline='') as csvfile:
+    with open(PDF_DIR / "banking_transaction.csv",'w',newline='') as csvfile:
         if not ALT_OUTPUT:
-            create_csv1(csvfile, table_years, table_dict)
+            csv_writer1(csvfile, table_years, table_dict)
         else:
-            print("alt")
+            alt_csv_writer(csvfile, table_years, table_dict)
 
 
 if __name__ == "__main__":
