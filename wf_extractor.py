@@ -1,4 +1,5 @@
 import pdfplumber
+import re
 
 class wells_fargo_extractor:
     '''performs table extraction on Wells Fargo bank transaction PDF files'''
@@ -14,7 +15,7 @@ class wells_fargo_extractor:
         
 
     def extract_tables(self) -> list:
-        '''extracts all tables from a wells fargo banking pdf and returns a single large table'''
+        '''extracts and merges all tables from the wells fargo banking pdf'''
         table_list = []
         
         page_index = 1 #start at second page to skip title page
@@ -60,8 +61,7 @@ class wells_fargo_extractor:
             prev_line = line_list[index]
 
 
-    def _is_final_page(self, curr_page_index):
-        '''use next page to determine if current page has final table'''
+    def _is_final_page(self, curr_page_index): #NOTE  i should check for the presence of a table header instead. some pdfs have "transaction history( continued)" but no actual table
         try:
             next_page = self.pdf.pages[curr_page_index + 1]
             
@@ -74,7 +74,48 @@ class wells_fargo_extractor:
             return True
 
 
-    def _table_debug(self, page):
-        im = page.to_image(resolution=200)
-        im.debug_tablefinder(self.table_settings)
-        im.show()
+def _line_debug(pdf, page_num):
+    page = pdf.pages[page_num]
+    start_line = page.lines[1]
+    end_line = page.lines[19] #hardcode to specify the line i want
+
+    im = page.to_image(resolution=200)
+    im.draw_line(start_line, stroke_width=3)
+    im.draw_line(end_line, stroke_width=3)
+    im.show()
+
+    print(start_line["linewidth"])
+    print(end_line["linewidth"])
+    
+
+def _table_debug(wf, page_num):
+    '''pass PDF object and its table settings'''
+
+    page = wf.pdf.pages[page_num]
+
+    top = page.lines[1]["bottom"] #NOTE some pages have 2 bold lines before the table. for some reason the second line gets ignored and using index 1 gets the 3rd line on page which is the line under the table headers
+    left = page.lines[1]["x0"]
+    cutoff = page.search((r"Ending balance on \d/\d{1,2}\s+\d+(,\d{3})*\.\d{2}"))
+    bottom = cutoff[0]["top"]
+    
+    
+    crop_page = page.crop((left, top, 520, bottom)) #right side of table is going to be hardcoded b/c i dont want entire table. has same value as the last explicit vertical line
+    im_crop = crop_page.to_image(resolution=200)
+    im_crop.debug_tablefinder({"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[left, 100, 148, 400, 450, 520]})
+    im_crop.show()
+
+
+def debug():
+    wf = wells_fargo_extractor("/mnt/c/Users/MarcoDominguez/Desktop/bb/Statement 03_15_22 (27K, PDF).pdf")
+    _table_debug(wf, 1)
+    #_line_debug(wf.pdf, 1)
+
+    wf2 = wells_fargo_extractor("banking_pdfs/February_2024.pdf")
+    _table_debug(wf2, 4)
+    # _line_debug(wf2.pdf, 4)
+
+
+if __name__ == "__main__":
+    debug()
+    
+   
