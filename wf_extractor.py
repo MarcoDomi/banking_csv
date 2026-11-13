@@ -35,7 +35,7 @@ class wells_fargo_extractor:
 
     def _general_table_extraction(self, page_index:int) -> list[list[str]]:
         '''extracts and returns the table from page '''
-        page = self.pdf.pages[page_index]
+        page = self.pages[page_index]
   
         #NOTE check position for start line on each page.
         left, top = 0 #placeholder values. will change later
@@ -47,7 +47,7 @@ class wells_fargo_extractor:
 
     def _final_table_extraction(self, page_index:int) -> list[list[str]]:
         '''extracting final table must be handled differently due to differing varying table size'''
-        page = self.pdf.pages[page_index]
+        page = self.pages[page_index]
         bottom = self._get_crop_bottom(page)
 
         cropped_page = page.crop((60,118,520,bottom))
@@ -70,7 +70,7 @@ class wells_fargo_extractor:
 
     def _is_final_page(self, curr_page_index): #NOTE  i should check for the presence of a table header instead. some pdfs have "transaction history( continued)" but no actual table
         try:
-            next_page = self.pdf.pages[curr_page_index + 1]
+            next_page = self.pages[curr_page_index + 1]
             
             if "Transaction history( continued)" in next_page.extract_text(): #could fail if wells fargo makes changes to the text
                 return False
