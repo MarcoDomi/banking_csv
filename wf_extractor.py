@@ -1,7 +1,7 @@
 import pdfplumber
 import re
 
-#NOTE there is no check for pdfs that have no tables b/c im not sure what an empty table would look like
+#NOTE there is no check for pdfs that have zero transactions b/c im not sure what an empty table would look like
 class wells_fargo_extractor:
     '''performs table extraction on Wells Fargo bank transaction PDF files'''
     def __init__(self, pdf_path:str):
@@ -9,10 +9,8 @@ class wells_fargo_extractor:
         self.pages = self.pdf.pages[1:] #remove title page
         self.page_count = len(self.pdf.pages)
 
-        header_obj = self.pages[0].search(r"Date Number Description Additions Subtractions balance") #start at second page to skip title page
-        left_vline = header_obj[0]["x0"] #sets leftmost vertical line for table
-        
-        self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[left_vline, 100,148,400,450,520]} #vertical lines are hardcoded. can cause issues if pdf layout is changed
+        header_obj = self._get_header_obj()
+        self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[header_obj["x0"], 100,148,400,450,520]} #vertical lines are hardcoded. can cause issues if pdf layout is changed
         
         
     def __del__(self):
@@ -83,6 +81,20 @@ class wells_fargo_extractor:
             return True
 
 
+    def _get_header_obj(self) -> dict:
+        '''returns dictionary for the table header'''
+        header_patterns = [
+            r"Date Number Description Additions Subtractions balance",
+            r"Date Number Description Credits Debits balance"
+        ]
+
+        header_obj = self.pages[0].search(header_patterns[0])
+        if len(header_obj) == 0:
+            header_obj = self.pages[0].search(header_patterns[1])
+
+        return header_obj[0]
+
+
 def _line_debug(pdf, page_num):
     page = pdf.pages[page_num]
     start_line = page.lines[1]
@@ -130,7 +142,7 @@ def debug(path, page_num):
 
 
 if __name__ == "__main__":
-    #debug("/mnt/c/Users/MarcoDominguez/Desktop/bb/Statement 03_15_22 (27K, PDF).pdf", 1)
+    debug("/mnt/c/Users/MarcoDominguez/Desktop/bb/Statement 03_15_22 (27K, PDF).pdf", 1)
     debug("banking_pdfs/February_2024.pdf", 4)
     
    
