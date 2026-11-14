@@ -9,7 +9,7 @@ class wells_fargo_extractor:
         self.pages = self.pdf.pages[1:] #remove title page
         self.page_count = len(self.pdf.pages)
 
-        header_obj = self._get_header_obj()
+        header_obj = self._get_header_obj(self.pages[0])
         self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[header_obj["x0"], 100,148,400,450,520]} #vertical lines are hardcoded. can cause issues if pdf layout is changed
         
         
@@ -22,7 +22,7 @@ class wells_fargo_extractor:
         '''extracts and merges all tables from the wells fargo banking pdf'''
         table_list = []
         
-        page_index = 1 #start at second page to skip title page
+        page_index = 0 
         
         while not self._is_final_page(page_index):
             table_list.extend(self._general_table_extraction(page_index))
@@ -37,20 +37,27 @@ class wells_fargo_extractor:
         '''extracts and returns the table from page '''
         page = self.pages[page_index]
   
-        #NOTE check position for start line on each page.
-        left, top = 0 #placeholder values. will change later
-        cropped_page = page.crop((left, top, 520, page.height))
-        table = cropped_page.extract_table(self.table_settings)
+        header_obj = self._get_header_obj(page)
+        top_bound = header_obj["bottom"]
+        left_bound = self.table_settings["explicit_vertical_lines"][0]
 
+        cropped_page = page.crop((left_bound, top_bound, 520, page.height))
+        table = cropped_page.extract_table(self.table_settings)
+       
         return table
 
 
     def _final_table_extraction(self, page_index:int) -> list[list[str]]:
         '''extracting final table must be handled differently due to differing varying table size'''
         page = self.pages[page_index]
+
+        header_obj = self._get_header_obj(page)
+        top_bound = header_obj["bottom"]
+        left_bound = self.table_settings["explicit_vertical_lines"][0]
+
         bottom = self._get_crop_bottom(page)
 
-        cropped_page = page.crop((60,118,520,bottom))
+        cropped_page = page.crop((left_bound,top_bound,520,bottom))
         table = cropped_page.extract_table(self.table_settings)
 
         return table
@@ -81,32 +88,18 @@ class wells_fargo_extractor:
             return True
 
 
-    def _get_header_obj(self) -> dict:
+    def _get_header_obj(self, page) -> dict:
         '''returns dictionary for the table header'''
         header_patterns = [
             r"Date Number Description Additions Subtractions balance",
             r"Date Number Description Credits Debits balance"
         ]
 
-        header_obj = self.pages[0].search(header_patterns[0])
+        header_obj = page.search(header_patterns[0])
         if len(header_obj) == 0:
-            header_obj = self.pages[0].search(header_patterns[1])
+            header_obj = page.search(header_patterns[1])
 
         return header_obj[0]
-
-
-def _line_debug(pdf, page_num):
-    page = pdf.pages[page_num]
-    start_line = page.lines[1]
-    end_line = page.lines[19] #hardcode to specify the line i want
-
-    im = page.to_image(resolution=200)
-    im.draw_line(start_line, stroke_width=3)
-
-    im.show()
-
-    print(start_line["linewidth"])
-    print(end_line["linewidth"])
     
 
 def _table_debug(wf, page_num):
@@ -114,35 +107,64 @@ def _table_debug(wf, page_num):
 
     page = wf.pdf.pages[page_num]
 
-    top = page.lines[1]["bottom"] #NOTE some pages have 2 bold lines before the table. for some reason the second line gets ignored and using index 1 gets the 3rd line on page which is the line under the table headers
-    left = page.lines[1]["x0"]
-    cutoff = page.search(r"Ending balance on \d/\d{1,2}\s+\d+(,\d{3})*\.\d{2}") #NOTE pdfs from 2026 DO NOT have this 
-    bottom = cutoff[0]["top"]
-    
-    
-    crop_page = page.crop((left, top, 520, bottom)) #right side of table is going to be hardcoded. i dont want entire table. has same value as the last explicit vertical line
-    im_crop = crop_page.to_image(resolution=200)
-    im_crop.debug_tablefinder({"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[left, 100, 148, 400, 450, 520]})
-    im_crop.show()
+    # top = page.lines[1]["bottom"] #NOTE some pages have 2 bold lines before the table. for some reason the second line gets ignored and using index 1 gets the 3rd line on page which is the line under the table headers
+    # left = page.lines[1]["x0"]
+    # cutoff = page.search(r"Ending balance on \d/\d{1,2}\s+\d+(,\d{3})*\.\d{2}") #NOTE pdfs from 2026 DO NOT have this 
+    # bottom = cutoff[0]["top"]
+    #crop_page = page.crop((left, top, 520, bottom)) #right side of table is going to be hardcoded. i dont want entire table. has same value as the last explicit vertical line
 
-def get_table_header(wf):
-    page = wf.pdf.pages[1]
-    wf._set_vertical_lines(page)
+    # im_crop = crop_page.to_image(resolution=200)
+    # im_crop.debug_tablefinder({"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[left, 100, 148, 400, 450, 520]})
+    # im_crop.show()
 
 
+def table_detect(page, table_settings):
+    im = page.to_image(resolution=200)
+    im.debug_tablefinder(table_settings)
+    im.show()
 
-def debug(path, page_num):
+def get_bottom_cutoff(page):
+    cutoff = page.search(r"Ending bal\s*ance on \d{1,2}/\d{1,2}\s+-?\d+(,\d{3})*\.\d{2}")
+    if len(cutoff) == 0:
+        cutoff = page.search(r"Totals\s+(\$\d{1,3}(,\d{3})*.?\d{2}(\s+)?){2}") #NOTE replace (\s+)? with \s*
+
+    return cutoff[0]
+
+
+def tables_debug(path, end_page):
     wf = wells_fargo_extractor(path)
-    # get_table_header(wf)
-    # print(wf.table_settings)
-    # _table_debug(wf, page_num)
-    #_line_debug(wf.pdf, page_num)
 
-   
+    start_page = 0
+    end_page -= 2
+    for i in range(start_page, end_page):
+        page = wf.pages[i]
+        header = wf._get_header_obj(page)
+        left = header["x0"]
+        top = header["bottom"]
+        bottom = page.height
+        crop_page = page.crop((left, top, 520, bottom))
+        table_detect(crop_page, wf.table_settings)
+        print("OK")
+
+
+
+    page = wf.pages[end_page]
+    header = wf._get_header_obj(page)
+    left = header["x0"]
+    top = header["bottom"]
+    bottom = get_bottom_cutoff(page)["top"]
+    crop_page = page.crop((left, top, 520, bottom))
+    table_detect(crop_page, wf.table_settings)
+
 
 
 if __name__ == "__main__":
-    debug("/mnt/c/Users/MarcoDominguez/Desktop/bb/Statement 03_15_22 (27K, PDF).pdf", 1)
-    debug("banking_pdfs/February_2024.pdf", 4)
-    
-   
+    from pathlib import Path
+
+    file_path = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
+    tables_debug("banking_pdfs/May_2024.pdf", 5)    
+
+
+    # with pdfplumber.open(file_path / "Statement 10_18_22 (33K, PDF).pdf") as pdf:
+    #     page = pdf.pages[2]
+    #     print(page.extract_text())
