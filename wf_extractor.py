@@ -65,17 +65,14 @@ class wells_fargo_extractor:
 
     def _get_crop_bottom(self, page):
         '''finds and returns 'bottom' value for cropping the final page'''
-        line_list = page.lines
+        cutoff = page.search(r"Ending bal\s*ance on \d{1,2}/\d{1,2}\s+-?\d+(,\d{3})*\.\d{2}")
+        if len(cutoff) == 0:
+            cutoff = page.search(r"Totals\s+(\$\d{1,3}(,\d{3})*.?\d{2}(\s+)?){2}") #NOTE replace (\s+)? with \s*
         
-        prev_line = line_list[1] #start at second line on page
-        for index in range(2,len(line_list)):
-            if line_list[index]['linewidth'] > prev_line["linewidth"]: #stop iterating thru page lines when we arrive at a line that is thicker
-                return prev_line['bottom']
-                
-            prev_line = line_list[index]
+        return cutoff[0] #NOTE should add error handler here
 
 
-    def _is_final_page(self, curr_page_index): #NOTE  i should check for the presence of a table header instead. some pdfs have "transaction history( continued)" but no actual table
+    def _is_final_page(self, curr_page_index): 
         try:
             next_page = self.pages[curr_page_index + 1]
             header_check = self._get_header_obj(next_page) #NOTE should try to return this header obj so i can use its data for next iteration
@@ -84,7 +81,7 @@ class wells_fargo_extractor:
 
             return False
         except IndexError:
-            print("outta pages")
+            print("No more pages")
             return True
 
 
@@ -110,10 +107,10 @@ def table_detect(page, table_settings):
     im.show()
 
 
-def get_bottom_cutoff(page):
+def test__get_bottom_cutoff(page):
     cutoff = page.search(r"Ending bal\s*ance on \d{1,2}/\d{1,2}\s+-?\d+(,\d{3})*\.\d{2}")
     if len(cutoff) == 0:
-        cutoff = page.search(r"Totals\s+(\$\d{1,3}(,\d{3})*.?\d{2}(\s+)?){2}") #NOTE replace (\s+)? with \s*
+        cutoff = page.search(r"Totals\s+(\$\d{1,3}(,\d{3})*.?\d{2}(\s+)?){2}") 
 
     return cutoff[0]
 
@@ -138,7 +135,7 @@ def tables_debug(path, end_page):
     header = wf._get_header_obj(page)
     left = header["x0"]
     top = header["bottom"]
-    bottom = get_bottom_cutoff(page)["top"]
+    bottom = test__get_bottom_cutoff(page)["top"]
     crop_page = page.crop((left, top, 520, bottom))
     table_detect(crop_page, wf.table_settings)
 
@@ -150,18 +147,31 @@ def test__get_header_obj(file_path):
         print(wf._get_header_obj(wf.pages[0])["text"])
 
 
-if __name__ == "__main__":
-    from pathlib import Path
-
-    file_path1 = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
-    file_path2 = Path("banking_pdfs")
-
-    for pdf in file_path1.iterdir():
+def test__is_final_page(file_path):
+    for pdf in file_path.iterdir():
         wf = wells_fargo_extractor(pdf)
         for i in range(wf.page_count):
             is_final = wf._is_final_page(i)
             if is_final:
-                print(pdf.name, i+2)
+                print(pdf.name, i+2) #add 2 to convert index to page number and account for removed title page
                 break
-            
-    
+
+def test__crop_bottom(file_path):
+    for pdf in file_path.iterdir():
+        wf = wells_fargo_extractor(pdf)
+        for i in range(wf.page_count):
+            if wf._is_final_page(i):
+                try:
+                    wf._get_crop_bottom(wf.pages[i])
+                except:
+                    print("ERROR: ", pdf.name)
+                break
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+
+    file_path1 = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
+    file_path2 = Path("banking_pdfs")  
+
+    test__crop_bottom(file_path1)
