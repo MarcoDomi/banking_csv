@@ -90,38 +90,26 @@ class wells_fargo_extractor:
 
     def _get_header_obj(self, page) -> dict:
         '''returns dictionary for the table header'''
+
         header_patterns = [
             r"Date Number Description Additions Subtractions balance",
             r"Date Number Description Credits Debits balance"
         ]
 
-        header_obj = page.search(header_patterns[0])
-        if len(header_obj) == 0:
-            header_obj = page.search(header_patterns[1])
+        for pattern in header_patterns:
+            header_list = page.search(pattern)
+            if len(header_list) != 0:
+                return header_list[0]
 
-        return header_obj[0]
+        return None #no matching headers were found
     
-
-def _table_debug(wf, page_num):
-    '''pass PDF object and its table settings'''
-
-    page = wf.pdf.pages[page_num]
-
-    # top = page.lines[1]["bottom"] #NOTE some pages have 2 bold lines before the table. for some reason the second line gets ignored and using index 1 gets the 3rd line on page which is the line under the table headers
-    # left = page.lines[1]["x0"]
-    # cutoff = page.search(r"Ending balance on \d/\d{1,2}\s+\d+(,\d{3})*\.\d{2}") #NOTE pdfs from 2026 DO NOT have this 
-    # bottom = cutoff[0]["top"]
-    #crop_page = page.crop((left, top, 520, bottom)) #right side of table is going to be hardcoded. i dont want entire table. has same value as the last explicit vertical line
-
-    # im_crop = crop_page.to_image(resolution=200)
-    # im_crop.debug_tablefinder({"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[left, 100, 148, 400, 450, 520]})
-    # im_crop.show()
 
 
 def table_detect(page, table_settings):
     im = page.to_image(resolution=200)
     im.debug_tablefinder(table_settings)
     im.show()
+
 
 def get_bottom_cutoff(page):
     cutoff = page.search(r"Ending bal\s*ance on \d{1,2}/\d{1,2}\s+-?\d+(,\d{3})*\.\d{2}")
@@ -161,10 +149,9 @@ def tables_debug(path, end_page):
 if __name__ == "__main__":
     from pathlib import Path
 
-    file_path = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
-    tables_debug("banking_pdfs/May_2024.pdf", 5)    
-
-
-    # with pdfplumber.open(file_path / "Statement 10_18_22 (33K, PDF).pdf") as pdf:
-    #     page = pdf.pages[2]
-    #     print(page.extract_text())
+    file_path1 = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
+    file_path2 = Path("banking_pdfs")
+    for dir in file_path2.iterdir():
+        wf = wells_fargo_extractor(dir)
+        print(dir.name)
+        print(wf._get_header_obj(wf.pages[0])["text"])
