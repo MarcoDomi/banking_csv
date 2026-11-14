@@ -78,11 +78,11 @@ class wells_fargo_extractor:
     def _is_final_page(self, curr_page_index): #NOTE  i should check for the presence of a table header instead. some pdfs have "transaction history( continued)" but no actual table
         try:
             next_page = self.pages[curr_page_index + 1]
-            
-            if "Transaction history( continued)" in next_page.extract_text(): #could fail if wells fargo makes changes to the text
-                return False
+            header_check = self._get_header_obj(next_page) #NOTE should try to return this header obj so i can use its data for next iteration
+            if header_check == None:
+                return True
 
-            return True
+            return False
         except IndexError:
             print("outta pages")
             return True
@@ -103,7 +103,6 @@ class wells_fargo_extractor:
 
         return None #no matching headers were found
     
-
 
 def table_detect(page, table_settings):
     im = page.to_image(resolution=200)
@@ -135,7 +134,6 @@ def tables_debug(path, end_page):
         print("OK")
 
 
-
     page = wf.pages[end_page]
     header = wf._get_header_obj(page)
     left = header["x0"]
@@ -145,13 +143,25 @@ def tables_debug(path, end_page):
     table_detect(crop_page, wf.table_settings)
 
 
+def test__get_header_obj(file_path):
+    for dir in file_path.iterdir():
+        wf = wells_fargo_extractor(dir)
+        print(dir.name)
+        print(wf._get_header_obj(wf.pages[0])["text"])
+
 
 if __name__ == "__main__":
     from pathlib import Path
 
     file_path1 = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
     file_path2 = Path("banking_pdfs")
-    for dir in file_path2.iterdir():
-        wf = wells_fargo_extractor(dir)
-        print(dir.name)
-        print(wf._get_header_obj(wf.pages[0])["text"])
+
+    for pdf in file_path1.iterdir():
+        wf = wells_fargo_extractor(pdf)
+        for i in range(wf.page_count):
+            is_final = wf._is_final_page(i)
+            if is_final:
+                print(pdf.name, i+2)
+                break
+            
+    
