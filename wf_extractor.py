@@ -9,7 +9,7 @@ class wells_fargo_extractor:
         self.page_count = len(self.pdf.pages)
 
         header_obj = self._get_header_obj(self.pages[0])
-        self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[header_obj["x0"], 100,148,400,450,520]} #vertical lines are hardcoded. can cause issues if pdf layout is changed
+        self.table_settings = {"horizontal_strategy":"lines_strict", "vertical_strategy":"explicit", "explicit_vertical_lines":[header_obj["x0"], 100,148,400,450,520], "snap_y_tolerance":4} #vertical lines are hardcoded. can cause issues if pdf layout is changed
         
         
     def __del__(self):
@@ -171,4 +171,5 @@ if __name__ == "__main__":
     from pathlib import Path
 
     file_path1 = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
-    file_path2 = Path("banking_pdfs")  
+    file_path2 = Path("banking_pdfs") 
+    tables_debug(file_path1 / "Statement 03_16_26 (180K, PDF).pdf", 3) 

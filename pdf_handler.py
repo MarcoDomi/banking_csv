@@ -87,6 +87,7 @@ def csv_writer1(csvfile, table_years:list, table_dict:dict):
         for month in months:
             try:
                 for row in tables_in_year[month]:
+                    row[0] += f"/{year}"
                     bankwriter.writerow(row)
             except KeyError:
                 next
