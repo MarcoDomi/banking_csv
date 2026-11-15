@@ -61,6 +61,8 @@ def get_table_dict() -> dict:
     '''create dictionary using year/month for each pdf path'''
     table_dict = {}
     for pdf_path in PDF_DIR.iterdir():
+        if pdf_path.suffix != ".pdf":
+            continue
         
         month, year = get_monthYear(pdf_path)
         

@@ -1,5 +1,4 @@
 import pdfplumber
-import re
 
 #NOTE there is no check for pdfs that have zero transactions b/c im not sure what an empty table would look like
 class wells_fargo_extractor:
@@ -55,9 +54,9 @@ class wells_fargo_extractor:
         top_bound = header_obj["bottom"]
         left_bound = self.table_settings["explicit_vertical_lines"][0]
 
-        bottom = self._get_crop_bottom(page)
+        bottom_bound = self._get_crop_bottom(page)
 
-        cropped_page = page.crop((left_bound,top_bound,520,bottom))
+        cropped_page = page.crop((left_bound,top_bound,520,bottom_bound))
         table = cropped_page.extract_table(self.table_settings)
 
         return table
@@ -69,7 +68,7 @@ class wells_fargo_extractor:
         if len(cutoff) == 0:
             cutoff = page.search(r"Totals\s+(\$\d{1,3}(,\d{3})*.?\d{2}(\s+)?){2}") #NOTE replace (\s+)? with \s*
         
-        return cutoff[0] #NOTE should add error handler here
+        return cutoff[0]["top"] #NOTE should add error handler here
 
 
     def _is_final_page(self, curr_page_index): 
@@ -173,5 +172,3 @@ if __name__ == "__main__":
 
     file_path1 = Path("/mnt/c/Users/MarcoDominguez/Desktop/bb/")
     file_path2 = Path("banking_pdfs")  
-
-    test__crop_bottom(file_path1)
